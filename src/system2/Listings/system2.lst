@@ -1,0 +1,98 @@
+C51 COMPILER V9.60.0.0   SYSTEM2                                                           07/14/2021 21:54:26 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SYSTEM2
+OBJECT MODULE PLACED IN .\Objects\system2.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE system2.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\s
+                    -ystem2.lst) TABS(2) OBJECT(.\Objects\system2.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <absacc.h>
+   3          // The code for setup of LCD is taken from a website mentioned in references
+   4          unsigned char str[5] = "START";
+   5          int i = 0;
+   6          int memoryAddPointer = 0x3800;
+   7          
+   8          
+   9          void delay(){
+  10   1        TMOD &= 0xF1;   // Timer 0 Mode 1, Timer 1 remains the same
+  11   1        TH0 = 0xFC;     // Initial value for 1milisecond delay
+  12   1        TL0 = 0x66;
+  13   1        TR0 = 1;
+  14   1        while(TF0 == 0){
+  15   2          TF0 = 0;
+  16   2          TR0 = 0;
+  17   2        }
+  18   1      }
+  19          
+  20          // Functions for LCD module
+  21          void LCDdisplay(unsigned char ch){
+  22   1        XBYTE[0x5000] = ch;
+  23   1        XBYTE[0x5002] = 0x05;
+  24   1        delay();
+  25   1        XBYTE[0x5002] = 0x01;
+  26   1      }
+  27          
+  28          void LCDcommand(unsigned char ch){
+  29   1        XBYTE[0x5000] = ch;
+  30   1        XBYTE[0x5002] = 0x04;
+  31   1        delay();
+  32   1        XBYTE[0x5002] = 0x00;
+  33   1      }
+  34          
+  35          void ISR() interrupt 4{
+  36   1        XBYTE[memoryAddPointer] = SBUF;   // Receive value from serial interrupt
+  37   1        memoryAddPointer = memoryAddPointer + 1;
+  38   1        if(memoryAddPointer == 0x4800){
+  39   2          memoryAddPointer = 0x3800;
+  40   2        }
+  41   1        for(i = 0; i < 5; i++){
+  42   2          LCDdisplay(str[i]);
+  43   2          delay();
+  44   2        }
+  45   1      }
+  46          
+  47          int main(void){
+  48   1        EA = 1;
+  49   1        ET1 = 1;
+  50   1        ET0 = 1;
+  51   1        ES = 1;       // Enabling interrupts
+  52   1        // The following setup code is from Dr. Jahed slides on LCD interfacing
+  53   1        // 5*7 Matrix for LCD
+  54   1        LCDcommand(0x38);
+C51 COMPILER V9.60.0.0   SYSTEM2                                                           07/14/2021 21:54:26 PAGE 2   
+
+  55   1        delay();
+  56   1        // Display on, blinking cursor
+  57   1        LCDcommand(0x0F);
+  58   1        delay();
+  59   1        LCDcommand(0x01);
+  60   1        delay();
+  61   1        // Cursor moves to the start
+  62   1        LCDcommand(0x81);
+  63   1        delay();
+  64   1        
+  65   1        // Initialization for Timer 1 to be used in serial communication
+  66   1        TMOD = 0x20;
+  67   1        SCON = 0x50;
+  68   1        TH1 = 0xFD;
+  69   1        TR1 = 1;
+  70   1        while(1);     // Wait for the data from system 1
+  71   1        // return 0;
+  72   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    203    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      9    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
