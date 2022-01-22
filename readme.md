@@ -10,4 +10,4 @@ The schematic for the systems is drawn in the report and the memory mapping is d
 ## Assembly Code  
 The code for both systems is written in C ,commented properly and then translated into 8051 assembly code and HEX commands using Keil uVision 5. The resulting HEX file for both systems is given to microcontrollers in Proteus and the results are validated.  
 
-P.S. More detail on the implementation is given in `report.pdf`
+P.S. Further details on the implementation is given in `report.pdf`
